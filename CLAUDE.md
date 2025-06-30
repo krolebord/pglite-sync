@@ -1,0 +1,2 @@
+- use pnpm
+- dont use default exports
