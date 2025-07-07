@@ -29,48 +29,6 @@ export interface DatabaseProviderProps {
   children: ReactNode;
 }
 
-const createWorkerDb = async () => {
-  const pgLiteWorker = new PgLiteWorker();
-  const pg = new PgLiteWorkerWrapper(pgLiteWorker);
-  return pg;
-};
-
-const cloneWorkerDb = async (workerDb: PGliteInterface) => {
-  console.time("cloneWorkerDb");
-  const dump = await workerDb.dumpDataDir("none");
-  console.timeEnd("cloneWorkerDb");
-
-  console.time("createMemoryDb");
-  const db = new PGlite({
-    fs: new MemoryFS(),
-    relaxedDurability: true,
-    extensions: { live },
-    loadDataDir: dump,
-  });
-  await db.waitReady;
-  console.timeEnd("createMemoryDb");
-
-  return db;
-};
-
-const initDb = async () => {
-  console.time("initWorkerDb");
-  const workerDb = await createWorkerDb();
-  console.timeEnd("initWorkerDb");
-
-  console.time("seedDatabase");
-  await seedDatabase(workerDb);
-  console.timeEnd("seedDatabase");
-
-  const memoryDb = await cloneWorkerDb(workerDb);
-
-  console.time("waitDbReady");
-  await memoryDb.waitReady;
-  console.timeEnd("waitDbReady");
-
-  return { workerDb, memoryDb };
-};
-
 export const ctxAtom = atom(async () => {
   console.time("total initDb");
   const ctx = await initDb();
